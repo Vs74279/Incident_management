@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration & Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="password"], input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .toggle-btn {
+            background-color: #007bff;
+            margin-top: 10px;
+        }
+        .toggle-btn:hover {
+            background-color: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="form-title">User Registration</h2>
+ 
+        <!-- Registration Form -->
+        <form id="registrationForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+ 
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+ 
+            <label for="phone_number">Phone Number:</label>
+            <input type="text" id="phone_number" name="phone_number" required>
+ 
+            <label for="address">Address:</label>
+            <input type="text" id="address" name="address" required>
+ 
+            <label for="pin_code">Pin Code:</label>
+            <input type="text" id="pin_code" name="pin_code" required>
+ 
+            <label for="city">City:</label>
+            <input type="text" id="city" name="city" readonly>
+ 
+            <label for="country">Country:</label>
+            <input type="text" id="country" name="country" readonly>
+ 
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+ 
+            <button type="submit">Register</button>
+        </form>
+ 
+        <!-- Login Form -->
+        <form id="loginForm" class="hidden">
+            <label for="loginUsername">Username:</label>
+            <input type="text" id="loginUsername" name="username" required>
+ 
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" name="password" required>
+ 
+            <button type="submit">Login</button>
+        </form>
+ 
+        <!-- Password Reset Request Form -->
+        <form id="passwordResetRequestForm" class="hidden">
+            <h3>Password Reset Request</h3>
+            <label for="resetEmail">Email:</label>
+            <input type="email" id="resetEmail" name="email" required>
+            <button type="submit">Request Password Reset</button>
+        </form>
+ 
+        <!-- Reset Password Form -->
+        <form id="resetPasswordForm" class="hidden">
+            <h3>Reset Password</h3>
+            <input type="hidden" id="resetToken" name="token">
+            <label for="newPassword">New Password:</label>
+            <input type="password" id="newPassword" name="password" required>
+            <button type="submit">Reset Password</button>
+        </form>
+ 
+        <button class="toggle-btn" onclick="toggleForms()">Switch to Login</button>
+        <button class="toggle-btn hidden" id="forgotPasswordBtn" onclick="toggleForms()">Forgot Password?</button>
+    </div>
+ 
+    <script>
+        function toggleForms() {
+            const regForm = document.getElementById('registrationForm');
+            const loginForm = document.getElementById('loginForm');
+            const passwordResetRequestForm = document.getElementById('passwordResetRequestForm');
+            const resetPasswordForm = document.getElementById('resetPasswordForm');
+            const formTitle = document.getElementById('form-title');
+            const toggleBtn = document.querySelector('.toggle-btn');
+            const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+ 
+            if (formTitle.textContent === 'User Registration') {
+                formTitle.textContent = 'User Login';
+                regForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                passwordResetRequestForm.classList.add('hidden');
+                resetPasswordForm.classList.add('hidden');
+                toggleBtn.textContent = 'Switch to Registration';
+                forgotPasswordBtn.classList.remove('hidden');
+            } else if (formTitle.textContent === 'User Login') {
+                formTitle.textContent = 'Forgot Password';
+                regForm.classList.add('hidden');
+                loginForm.classList.add('hidden');
+                passwordResetRequestForm.classList.remove('hidden');
+                resetPasswordForm.classList.add('hidden');
+                toggleBtn.classList.add('hidden');
+                forgotPasswordBtn.classList.add('hidden');
+            } else if (formTitle.textContent === 'Forgot Password') {
+                formTitle.textContent = 'Reset Password';
+                regForm.classList.add('hidden');
+                loginForm.classList.add('hidden');
+                passwordResetRequestForm.classList.add('hidden');
+                resetPasswordForm.classList.remove('hidden');
+                toggleBtn.classList.add('hidden');
+                forgotPasswordBtn.classList.add('hidden');
+            } else if (formTitle.textContent === 'Reset Password') {
+                formTitle.textContent = 'User Registration';
+                regForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                passwordResetRequestForm.classList.add('hidden');
+                resetPasswordForm.classList.add('hidden');
+                toggleBtn.classList.remove('hidden');
+                forgotPasswordBtn.classList.add('hidden');
+            }
+        }
+ 
+        document.getElementById("pin_code").addEventListener("blur", function() {
+            const pin_code = this.value;
+ 
+            fetch(`/location/?pin_code=${pin_code}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Location not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("city").value = data.city;
+                    document.getElementById("country").value = data.country;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById("city").value = "";
+                    document.getElementById("country").value = "";
+                    alert("Invalid pin code, please try again.");
+                });
+        });
+ 
+        document.getElementById("registrationForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+ 
+            const formData = {
+                username: document.getElementById("username").value,
+                email: document.getElementById("email").value,
+                phone_number: document.getElementById("phone_number").value,
+                address: document.getElementById("address").value,
+                pin_code: document.getElementById("pin_code").value,
+                city: document.getElementById("city").value,
+                country: document.getElementById("country").value,
+                password: document.getElementById("password").value,
+            };
+ 
+            fetch("/register/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Registration successful!");
+                toggleForms(); // Switch to login form
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert("Registration failed. Please try again.");
+            });
+        });
+ 
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+ 
+            const loginData = {
+                username: document.getElementById("loginUsername").value,
+                password: document.getElementById("loginPassword").value,
+            };
+ 
+            fetch("/login/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(loginData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === "Login successful") {
+                    localStorage.setItem('reporter_id', data.reporter_id); // Store reporter_id
+                    alert("Login successful!");
+                    window.location.href = "/incidents"; // Redirect to incident page
+                } else {
+                    alert("Login failed. Please check your credentials.");
+                }
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert("Login failed. Please try again.");
+            });
+        });
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+ 
+    const loginData = {
+        username: document.getElementById("loginUsername").value,
+        password: document.getElementById("loginPassword").value,
+    };
+ 
+    fetch("/login/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === "Login successful") {
+            // Store the token and redirect
+            localStorage.setItem('token', data.token); // Save JWT token
+            alert("Login successful!");
+            window.location.href = "/incidents"; // Redirect to incidents page
+        } else {
+            alert("Login failed. Please check your credentials.");
+        }
+    })
+    .catch((error) => {
+        console.error("Error:", error);
+        alert("Login failed. Please try again.");
+    });
+});
+ 
+ 
+        document.getElementById("resetPasswordForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+ 
+            const resetPasswordData = {
+                token: document.getElementById("resetToken").value,
+                password: document.getElementById("newPassword").value,
+            };
+ 
+            fetch("/reset-password/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(resetPasswordData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                toggleForms(); // Switch to login form
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+                alert("Password reset failed. Please try again.");
+            });
+        });
+ 
+        // Initialize
+        if (window.location.search.includes('token=')) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            if (token) {
+                document.getElementById("resetToken").value = token;
+                toggleForms(); // Switch to reset password form
+            }
+        }
+    </script>
+</body>
+</html>
