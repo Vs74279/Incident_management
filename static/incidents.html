@@ -1,112 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Incident Management</title>
+    <title>Create Incident</title>
     <style>
-        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+ 
+        h1 {
+            color: #333;
+        }
+ 
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+ 
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+ 
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+ 
+        textarea {
+            resize: vertical;
+            height: 100px;
+        }
+ 
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+ 
+        button:hover {
+            background-color: #0056b3;
+        }
+ 
+        .incident-list {
+            max-width: 600px;
+            margin-top: 20px;
+        }
+ 
+        .incident-item {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+ 
+        .incident-item h3 {
+            margin-top: 0;
+            color: #007BFF;
+        }
+ 
+        .incident-item p {
+            margin: 5px 0;
+        }
     </style>
 </head>
-
 <body>
-    <div class="container">
-       
-        <h1 style="color: red;"><u>Welcome to vikash world!</u></h1><br>
-        <h1 style="color: blue;"><u>-: Incident Management :-</u></h1>
-        <form id="incidentForm">
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title" required>
-
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" required></textarea>
-
-            <label for="priority">Priority:</label>
-            <input type="text" id="priority" name="priority" required>
-
-            <label for="reporter_id">Reporter ID:</label>
-            <input type="number" id="reporter_id" name="reporter_id" required>
-
-            <button type="submit">Create Incident</button>
-        </form>
-
-        <button id="fetchIncidentsButton">Fetch All Incidents</button>
-
-        <div id="incidents-list">
-            <h3 style="color: #28a745;"><u>Incident List</u></h3>
-            <ul id="incidentItems">
-                <!-- Incidents will be populated here -->
-            </ul>
-        </div>
+    <h1>Create Incident</h1>
+    <form id="incidentForm">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required><br><br>
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea><br><br>
+        <label for="priority">Priority:</label>
+        <input type="text" id="priority" name="priority" required><br><br>
+        <input type="hidden" id="reporter_id" name="reporter_id"><br><br>
+        <button type="submit">Submit</button>
+    </form>
+ 
+    <button id="fetchIncidents">Fetch All Incidents</button>
+ 
+    <div class="incident-list" id="incidentList">
+        <!-- Incidents will be displayed here -->
     </div>
-
+ 
     <script>
-        document.getElementById("incidentForm").addEventListener("submit", function (event) {
-            event.preventDefault();
-
-            const formData = {
-                title: document.getElementById("title").value,
-                description: document.getElementById("description").value,
-                priority: document.getElementById("priority").value,
-                reporter_id: document.getElementById("reporter_id").value
-            };
-
-            fetch("/create-incident/", {
-                method: "POST",
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch the logged-in user's ID and fill the reporter_id field
+            fetch('/get-user-id/', {
+                method: 'GET',
                 headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
             })
-                .then(response => response.json())
-                .then(data => {
-                    alert("Incident created successfully!");
-                    fetchIncidents(); // Reload the incidents list
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('reporter_id').value = data.user_id;
+            });
+ 
+            document.getElementById('incidentForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+ 
+                const formData = new FormData(event.target);
+                const incidentData = {
+                    title: formData.get('title'),
+                    description: formData.get('description'),
+                    priority: formData.get('priority'),
+                    reporter_id: formData.get('reporter_id')
+                };
+ 
+                fetch('/create-incident/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(incidentData)
                 })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("Failed to create incident. Please try again.");
+                .then(response => {
+                    if (response.ok) {
+                        alert('Incident created successfully');
+                    } else {
+                        alert('Failed to create incident');
+                    }
                 });
-        });
-
-        document.getElementById("fetchIncidentsButton").addEventListener("click", function () {
-            fetch("/all-incidents/")
+            });
+ 
+            // Fetch all incidents when the button is clicked
+            document.getElementById('fetchIncidents').addEventListener('click', function() {
+                fetch('/all-incidents/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
                 .then(response => response.json())
                 .then(data => {
-                    const incidentItems = document.getElementById("incidentItems");
-                    incidentItems.innerHTML = "";
+                    const incidentList = document.getElementById('incidentList');
+                    incidentList.innerHTML = '';  // Clear previous incidents
+ 
                     data.forEach(incident => {
-                        const li = document.createElement("li");
-                        li.innerHTML = `<span class="incident-id">${incident.incident_id}</span>: ${incident.title} <span class="incident-status">(${incident.status})</span>`;
-                        incidentItems.appendChild(li);
+                        const incidentItem = document.createElement('div');
+                        incidentItem.className = 'incident-item';
+                        incidentItem.innerHTML = `
+                            <h3>${incident.title}</h3>
+                            <p><strong>ID:</strong> ${incident.incident_id}</p>
+                            <p><strong>Description:</strong> ${incident.description}</p>
+                            <p><strong>Priority:</strong> ${incident.priority}</p>
+                            <p><strong>Status:</strong> ${incident.status}</p>
+                        `;
+                        incidentList.appendChild(incidentItem);
                     });
                 })
                 .catch(error => {
-                    console.error("Error:", error);
+                    console.error('Error fetching incidents:', error);
                 });
+            });
         });
-
-        function fetchIncidents() {
-            fetch("/incidents/")
-                .then(response => response.json())
-                .then(data => {
-                    const incidentItems = document.getElementById("incidentItems");
-                    incidentItems.innerHTML = "";
-                    data.forEach(incident => {
-                        const li = document.createElement("li");
-                        li.innerHTML = `<span class="incident-id">${incident.incident_id}</span>: ${incident.title} <span class="incident-status">(${incident.status})</span>`;
-                        incidentItems.appendChild(li);
-                    });
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                });
-        }
-
-        // Fetch incidents on page load
-        fetchIncidents();
     </script>
 </body>
-
 </html>
